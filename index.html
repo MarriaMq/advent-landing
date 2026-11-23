@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src 'sha256-rtPj5YPd1Ag540IhtkMVhTKCZkyPTiOpNmZQNjE6fyM='; base-uri 'none'; form-action 'none'; connect-src 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>new ((conten advent)) calendar</title>
+<meta name="description" content="13 адвент-материалов для создания рилсов за 1€. Старт 01.12.">
+<meta name="theme-color" content="#b0c0d0">
+<meta property="og:title" content="new ((conten advent)) calendar">
+<meta property="og:description" content="13 адвент-материалов для создания рилсов за 1€. Старт 01.12.">
+<meta property="og:image" content="images/hero.webp">
+<link rel="preload" as="image" href="images/hero.webp" type="image/webp">
+<style>
+  /* Всё построено в единицах макета: ширина макета = 1080.
+     --k — 1 единица макета в пикселях (ширина колонки / 1080).
+     На телефоне колонка = ширина экрана, на компьютере — 480px по центру. */
+  :root{
+    --bg:#b0c0d0;
+    --pill:#d0dde9;
+    --white:#ffffff;
+    --ink:#1b1b1b;
+    --w:min(100vw,480px);
+    --k:calc(var(--w) / 1080);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--bg);-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  body{
+    background:var(--bg);color:var(--ink);overflow-x:hidden;
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:400;
+    -webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+  }
+  a{color:inherit;text-decoration:none}
+  .framed body{display:none}
+
+  /* холст макета: все блоки стоят по координатам макета */
+  .canvas{position:relative;width:calc(var(--k) * 1080);height:calc(var(--k) * 4731);margin:0 auto;overflow:hidden}
+
+  /* текст: --x/--y — левый верхний угол (для .r — правый край), --fs — кегль, --lh — интерлиньяж, --sy — вытяжка по вертикали */
+  .t{
+    position:absolute;left:calc(var(--k) * var(--x));top:calc(var(--k) * var(--y));
+    font-size:calc(var(--k) * var(--fs));line-height:var(--lh,.9);
+    white-space:pre;color:var(--white);letter-spacing:var(--bls);
+    transform:scaleY(var(--sy,1.17));transform-origin:0 0;
+  }
+  .t.r{left:auto;right:calc(var(--k) * (1080 - var(--x)));text-align:right;transform-origin:100% 0}
+  .t.ink{color:var(--ink)}
+  .t{--bls:-.02em}
+  .t .l{display:block;position:relative;left:calc(var(--k) * var(--dx,0));top:calc(var(--k) * var(--dv,0));letter-spacing:calc(var(--bls) + var(--k) * var(--e,0))}
+  .t .l.hd{--bls:0em}
+
+  /* заголовок — картинка, чтобы буквы стояли один в один */
+  .hero{position:absolute;left:calc(var(--k) * 97);top:calc(var(--k) * 203);width:calc(var(--k) * 748);height:calc(var(--k) * 258);display:block}
+  .hero img{display:block;width:100%;height:100%}
+
+  /* фото: прямоугольные, без рамок и скруглений */
+  .ph{position:absolute;overflow:hidden;left:calc(var(--k) * var(--x));top:calc(var(--k) * var(--y));
+      width:calc(var(--k) * var(--w0));height:calc(var(--k) * var(--h))}
+  .ph img{position:absolute;display:block;max-width:none;
+      left:calc(var(--k) * var(--ox) * -1);top:calc(var(--k) * var(--oy) * -1);
+      width:calc(var(--k) * var(--iw));height:calc(var(--k) * var(--ih))}
+
+  /* список «что внутри» */
+  .li{--fs:25.5;--lh:.889;--sy:1.2}
+
+
+  /* переключатель языка */
+  .lang{position:absolute;left:calc(var(--k) * 904);top:calc(var(--k) * 130);display:flex;gap:calc(var(--k) * 2);z-index:3}
+  .lb{position:relative;width:calc(var(--k) * 62);height:calc(var(--k) * 62);border-radius:50%;
+      border:calc(var(--k) * 4) solid var(--white);background:transparent;background-clip:padding-box;
+      color:var(--white);font:inherit;font-size:calc(var(--k) * 24.5);line-height:1;letter-spacing:-.02em;
+      display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;outline:none}
+  .lb span{display:block;transform:scaleY(1.14)}
+  .lb::after{content:"";position:absolute;inset:-10px}
+  .lb[aria-pressed="true"]{border-width:calc(var(--k) * 2);border-color:transparent;background-color:var(--white);color:#878787}
+  .lb:focus-visible{outline:1px dashed var(--white);outline-offset:3px}
+  /* украинская версия: подгонка трекинга строк делалась под русский текст — сбрасываем её */
+  html.uk .t:not(.w) .l{--e:0!important;--dx:0!important;--dv:0!important}
+
+  /* снежинки */
+  .flake{position:absolute;pointer-events:none;
+    left:calc(var(--k) * (var(--x) - var(--s) / 2));top:calc(var(--k) * (var(--y) - var(--s) * .485));
+    width:calc(var(--k) * var(--s));height:calc(var(--k) * var(--s) * .97);
+    background:url(images/flake.webp) center/contain no-repeat;
+    animation:twinkle 5s ease-in-out infinite;animation-delay:var(--d,0s)}
+  @keyframes twinkle{0%,100%{opacity:1;transform:rotate(0) scale(1)}50%{opacity:.6;transform:rotate(14deg) scale(.92)}}
+
+  /* кнопка-пилюля */
+  .btn{
+    display:flex;align-items:center;justify-content:center;
+    background:var(--pill);border:1px solid var(--white);border-radius:999px;color:var(--ink);
+    font-size:calc(var(--k) * 40);line-height:1;letter-spacing:-.02em;white-space:nowrap;
+    outline:none;
+  }
+  .btn span{display:block;transform:scaleY(1.17);transform-origin:50% 50%;padding-bottom:.04em}
+  .btn:active{filter:brightness(.96)}
+  .btn:focus-visible{outline:1px dashed var(--white);outline-offset:3px}
+  .cta span{margin-left:calc(var(--k) * 18)}
+  .cta{position:absolute;left:calc(var(--k) * 276);top:calc(var(--k) * 4541);width:calc(var(--k) * 521);height:calc(var(--k) * 83)}
+
+  /* закреплённая кнопка внизу экрана — только на телефоне */
+  .sticky{display:none}
+  @media (max-width:767px){
+    .sticky{
+      display:flex;position:fixed;z-index:10;left:50%;
+      bottom:calc(14px + env(safe-area-inset-bottom,0px));
+      width:calc(var(--k) * 560);height:max(46px,calc(var(--k) * 110));
+      font-size:max(20px,calc(var(--k) * 46));
+      transform:translate(-50%,0);transition:opacity .3s ease,visibility .3s;
+    }
+    .sticky.off{opacity:0;visibility:hidden;pointer-events:none}
+    .canvas{margin-bottom:calc(var(--k) * 60)}
+  }
+
+  @media (prefers-reduced-motion:reduce){.flake{animation:none}.sticky{transition:none}}
+</style>
+</head>
+<body>
+<main class="canvas" id="canvas">
+
+
+  <!-- снежинки -->
+  <i class="flake" style="--x:955;--y:334;--s:136;--d:0s"></i>
+  <i class="flake" style="--x:229.5;--y:978;--s:136;--d:-.8s"></i>
+  <i class="flake" style="--x:945;--y:1566;--s:136;--d:-1.6s"></i>
+  <i class="flake" style="--x:420;--y:2111;--s:136;--d:-2.4s"></i>
+  <i class="flake" style="--x:981;--y:2355;--s:136;--d:-3.2s"></i>
+  <i class="flake" style="--x:238;--y:2668;--s:136;--d:-4s"></i>
+  <i class="flake" style="--x:859;--y:2888;--s:136;--d:-4.8s"></i>
+  <i class="flake" style="--x:89;--y:3421;--s:136;--d:-.4s"></i>
+  <i class="flake" style="--x:835;--y:3538;--s:136;--d:-1.2s"></i>
+
+  <!-- заголовок -->
+  <h1 class="hero"><img src="images/hero.webp" alt="new ((conten advent)) calendar" width="1496" height="516"></h1>
+
+  <!-- переключатель языка: активный — белый круг, неактивный — белое кольцо -->
+  <div class="lang" role="group" aria-label="Язык / Мова">
+    <button type="button" class="lb" data-l="uk" lang="uk" aria-pressed="false"><span>UA</span></button>
+    <button type="button" class="lb" data-l="ru" lang="ru" aria-pressed="true"><span>RU</span></button>
+  </div>
+
+  <!-- фото 1 + крупная надпись -->
+  <div class="ph" style="--x:536;--y:804;--w0:505;--h:631;--ox:0;--oy:-.5;--iw:505.3;--ih:630.4"><img src="images/1.webp" alt="" width="735" height="917"></div>
+  <!-- фото 2 + «что внутри» -->
+  <div class="ph" style="--x:101;--y:1436;--w0:437;--h:547;--ox:.5;--oy:0;--iw:437.55;--ih:546.9"><img src="images/2.webp" alt="" width="736" height="920"></div>
+  <!-- список: лесенкой, влево и вправо от центральной оси -->
+  <!-- фото 3 -->
+  <div class="ph" style="--x:538;--y:3617;--w0:542;--h:480;--ox:0;--oy:0;--iw:589;--ih:480.4"><img src="images/3.webp" alt="" width="705" height="575"></div>
+
+  <!-- финальный призыв -->
+    <div class="t" style="--x:57;--y:84;--fs:24.5;--lh:1.0;--sy:1.14"><span class="l" style="--dx:-1.0;--e:0.118">ne(w) content dump</span></div>
+  <div class="t" style="--x:341;--y:84;--fs:24.5;--lh:1.0;--sy:1.14"><span class="l" style="--dx:1.0;--e:0.334">2027</span></div>
+  <div class="t" style="--x:543;--y:84;--fs:24.5;--lh:1.0;--sy:1.14"><span class="l" style="--dx:1.0;--e:-0.045">content advent calendar</span></div>
+  <div class="t r" style="--x:1026;--y:84;--fs:24.5;--lh:1.0;--sy:1.14"><span class="l" style="--dx:0.12;--e:0.118">by dasha.brisaniuk</span></div>
+  <div class="t" style="--x:171;--y:484;--fs:39.5;--lh:0.86;--sy:1.14"><span class="l" style="--e:0.2">старт 01.12</span></div>
+  <p class="t" style="--x:536.5;--y:484;--fs:39;--lh:0.877;--sy:1.14"><span class="l" style="--e:0.231" data-uk="заходимо у 2027">заходим в 2027</span><span class="l" style="--e:0.533" data-uk="не з обіцянками,">не с обещаниями,</span><span class="l" style="--e:-0.143;--dv:-1.76" data-uk="а з готовим контентом,">а с готовым контентом,</span><span class="l" style="--dx:-1.0;--dv:-0.87" data-uk="який нативно">который нативно</span><span class="l" style="--e:0.5;--dv:-0.87" data-uk="продає">продаёт</span></p>
+  <div class="t" style="--x:268;--y:831;--fs:140;--lh:0.9;--sy:1.167"><span class="l">((13))</span></div>
+  <div class="t" style="--x:555.5;--y:819.5;--fs:95.5;--lh:0.696;--sy:1.285;--bls:-0.025em"><span class="l" data-uk="адвент">адвент</span><span class="l" data-uk="матеріалів">материалов</span><span class="l" data-uk="для">для</span><span class="l" data-uk="створення">создания</span><span class="l" data-uk="рілсів">рилсов</span></div>
+  <div class="t" style="--x:555.5;--y:1246.5;--fs:95.5;--lh:0.696;--sy:1.285;--bls:-0.025em"><span class="l">за</span></div>
+  <div class="t" style="--x:667;--y:1252;--fs:130;--lh:0.9;--sy:1.34"><span class="l">1€</span></div>
+  <div class="t w" style="--x:555.5;--y:1486.6;--fs:102;--lh:0.733;--sy:1.15"><span class="l" style="--dx:2.0;--e:-2.0" data-uk="що">что</span><span class="l" style="--e:-0.6" data-uk="всередині">внутри</span><span class="l" style="--dx:31"><span style="margin-left:calc(var(--k) * 0);letter-spacing:calc(var(--bls) + var(--k) * 6.3)">((</span><span style="margin-left:calc(var(--k) * -8);letter-spacing:calc(var(--bls) + var(--k) * -1.03)">контент</span><span style="margin-left:calc(var(--k) * 5.3);letter-spacing:calc(var(--bls) + var(--k) * 6.3)">))</span></span><span class="l" style="--dx:31.5;--e:0.5" data-uk="адвенту">адвента</span></div>
+  <div class="t li" style="--x:540;--y:1985;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-1.0;--e:0.167" data-uk="ЛЕКЦІЯ:">ЛЕКЦИЯ:</span><span class="l hd" style="--dv:-0.83" data-uk="БОЛІ ТВОЇХ">БОЛИ ТВОИХ</span><span class="l hd" style="--e:-0.5;--dv:0.83" data-uk="КЛІЄНТІВ”">КЛИЕНТОВ”</span><span class="l" style="--e:-0.167" data-uk="лекція про те, як нативно">лекция о том, как нативно</span><span class="l" style="--dv:0.83" data-uk="підсвічувати болі">подсвечивать боли</span><span class="l" style="--e:0.154" data-uk="ваших клієнтів">ваших клиентов</span><span class="l" style="--dx:-1.0;--e:-0.1" data-uk="які ви закриваєте">которые вы закрываете</span><span class="l" style="--e:-0.333;--dv:-0.83" data-uk="послугою">услугой</span></div>
+  <div class="t r li" style="--x:535;--y:2211;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-0.29;--e:-0.286" data-uk="ЗАВДАННЯ:">ЗАДАНИЕ:</span><span class="l" style="--dx:-1.33;--e:-0.333" data-uk="створити">создать</span><span class="l" style="--dx:0.13;--e:0.133" data-uk="рілс на нативний">рисл на нативную</span><span class="l" style="--dx:-1.21;--e:-0.211" data-uk="продаж своєї послуги">продажу своей услуги</span><span class="l" style="--dx:-1.11;--e:-0.111;--dv:-0.83" data-uk="через біль">через боль</span><span class="l" style="--dx:-1.0" data-uk="+">+</span><span class="l" style="--dx:-0.83;--e:0.167" data-uk="приклади болів">примеры болей</span><span class="l" style="--dx:-2.21;--e:-0.214;--dv:-0.83" data-uk="під кожну нішу">под каждую нишу</span></div>
+  <div class="t li" style="--x:539;--y:2436;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-1.0;--e:0.167" data-uk="ЛЕКЦІЯ:">ЛЕКЦИЯ:</span><span class="l hd" style="--dv:-0.83" data-uk="ПРЯМІ ПРОДАЖІ">ПРЯМЫЕ ПРОДАЖИ</span><span class="l hd" style="--dx:-1.0;--e:0.111;--dv:-0.83" data-uk="ЧЕРЕЗ БІЛЬ">ЧЕРЕЗ БОЛЬ</span><span class="l" style="--dx:-1.0;--e:-0.348;--dv:-0.83" data-uk="як без крінжу продавати">как без кринжа продавать</span><span class="l" style="--dx:-1.0;--e:-0.176;--dv:-1.66" data-uk="свої послуги, доносячи">свои услуги донося</span><span class="l" style="--dv:-0.83" data-uk="їхню цінність">их ценности</span></div>
+  <div class="t r li" style="--x:535;--y:2602;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" data-uk="ЗАВДАННЯ:">ЗАДАНИЕ:</span><span class="l" data-uk="створюємо">создаем</span><span class="l" style="--dx:-2.18;--e:-0.182" data-uk="рілс-воронку">рилс-воронку</span><span class="l" style="--dx:-0.01;--e:0.999" data-uk="через біль">через боль</span><span class="l" style="--dx:-0.83;--e:0.167;--dv:-0.83" data-uk="клієнта">клиента</span></div>
+  <div class="t li" style="--x:538;--y:2739;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-1.0;--e:-0.2" data-uk="ПРЯМИЙ ЕФІР">ПРЯМОЙ ЭФИР</span><span class="l hd" style="--e:-0.417;--dv:-0.83" data-uk="РОЗБІР РІЛСІВ">РАЗБОР РИЛСОВ</span><span class="l hd" style="--dx:-1.0;--e:0.3" data-uk="І СЦЕНАРІЇВ">И СЦЕНАРИЕВ</span><span class="l" style="--dx:-1.0;--e:-0.455;--dv:-0.83" data-uk="рілс-воронки">рилс-воронки</span></div>
+  <div class="t r li" style="--x:540;--y:2858;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-0.6;--e:-0.6" data-uk="ЗАХОДИ">ЗАХОДЫ</span><span class="l hd" style="--dv:-0.83" data-uk="СТОРІС">СТОРИС</span><span class="l hd" style="--dx:-0.3;--e:-0.3" data-uk="З ПРОДАЖАМИ">С ПРОДАЖАМИ</span><span class="l" style="--dx:-0.09;--e:-0.091" data-uk="пул ідей, як">пул идей как</span><span class="l" style="--dx:0.08;--e:0.077;--dv:-0.83" data-uk="нативно почати">нативно начать</span><span class="l" style="--dx:-0.07;--e:-0.067" data-uk="сторіс, що продають">продающие сторис</span></div>
+  <div class="t li" style="--x:540;--y:3021;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-1.0;--e:-0.429" data-uk="ПІДБІРКИ">ПОДБОРКИ</span><span class="l hd" style="--dx:-1.0;--e:-0.6;--dv:-0.83" data-uk="ОБКЛАДИНОК ДЛЯ">ОБЛОЖЕК ДЛЯ</span><span class="l hd" style="--e:-0.2" data-uk="РІЛСІВ">РИЛСОВ</span><span class="l" style="--dx:-1.0;--e:0.375" data-uk="шрифтові">шрифтовые</span><span class="l" style="--dx:-2.0;--e:0.042;--dv:0.83" data-uk="композиції та ідеї дизайну">композиции и идеи дизайна</span><span class="l" style="--e:-0.3" data-uk="для обкладинок із текстом">для обложек с текстом</span></div>
+  <div class="t r li" style="--x:540;--y:3190;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-2.0;--e:-2.0" data-uk="20">20</span><span class="l hd" style="--dx:-0.36;--e:-0.357;--dv:-0.83" data-uk="ІДЕЙ ДЛЯ ЗЙОМКИ">ИДЕЙ ДЛЯ СЪЕМКИ</span><span class="l hd" style="--dx:-0.2;--e:-0.2" data-uk="РІЛСІВ">РИЛСОВ</span><span class="l" style="--dx:-0.31;--e:-0.312;--dv:-0.83" data-uk="приклади того, як">примеры того, как</span><span class="l" style="--dx:-0.06;--e:-0.062;--dv:-0.83" data-uk="знімати говорячу">снимать говорящую</span><span class="l" style="--dx:-0.2;--e:-0.2;--dv:-0.83" data-uk="голову">голову</span></div>
+  <div class="t li" style="--x:544;--y:3347;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-1.0;--e:-0.571" data-uk="ПІДБІРКА">ПОДБОРКА</span><span class="l hd" style="--dx:-1.0;--e:-0.455;--dv:-0.83" data-uk="ІДЕЙ ЛЕГКОГО">ИДЕЙ ЛЕГКОГО</span><span class="l hd" style="--dx:-1.0;--e:-0.5;--dv:0.83" data-uk="МОНТАЖУ">МОНТАЖА</span><span class="l" style="--e:-0.083" data-uk="для рілсів із">для рислсов с</span><span class="l" style="--dx:-1.0;--e:-0.125;--dv:0.83" data-uk="говорячою головою">говорящей головой</span></div>
+  <div class="t r li" style="--x:539;--y:3484;--fs:25.5;--lh:0.889;--sy:1.2"><span class="l hd" style="--dx:-0.88;--e:-0.875" data-uk="РАМКИ ДЛЯ">РАМКИ ДЛЯ</span><span class="l hd" style="--dx:-0.3;--e:-0.308;--dv:-0.83" data-uk="МОНТАЖУ РІЛСІВ">МОНТАЖА РИЛСОВ</span><span class="l" style="--dx:-0.84;--e:0.158" data-uk="шаблони, фони, рамки">шаблоны, фоны, рамки</span><span class="l" style="--dx:0.18;--e:0.176" data-uk="для рілсів, які">для досматриваемых</span><span class="l" style="--dv:0.83" data-uk="додивляються до кінця">рилсов</span></div>
+  <div class="t r ink" style="--x:530.5;--y:4097;--fs:76;--lh:0.967;--sy:1.166;--bls:-0.06em"><span class="l" style="--dx:1.0;--e:-3.0" data-uk="ГОУ">ГОУ</span><span class="l" style="--dx:4.14;--e:-0.857;--dv:0.86" data-uk="ГОТУВАТИ">ГОТОВИТЬ</span><span class="l" style="--dx:7.0;--e:1.0" data-uk="БЛОГ ДО">БЛОГ К</span><span class="l" style="--dx:4.5;--e:0.5;--dv:0.86" data-uk="НОВОГО РОКУ">НОВОМУ ГОДУ</span></div>
+  <div class="t" style="--x:542;--y:4427;--fs:39.5;--lh:0.86;--sy:1.14"><span class="l" style="--e:0.2">старт 01.12</span></div>
+
+  <a class="btn cta" href="https://t.me/newcontentdump_bot?start=6aff617e07b107ffc506fead" id="cta" rel="noopener"><span data-uk="відкрити адвент за 1€">открыть адвент за 1€</span></a>
+</main>
+
+<a class="btn sticky" id="sticky" href="https://t.me/newcontentdump_bot?start=6aff617e07b107ffc506fead" rel="noopener"><span data-uk="відкрити адвент за 1€">открыть адвент за 1€</span></a>
+
+<script>
+  (function(){
+    if(window.top!==window.self){document.documentElement.className='framed';return;}
+    var root=document.documentElement,btns=document.querySelectorAll('.lb'),nodes=document.querySelectorAll('[data-uk]');
+    var META={ru:'13 адвент-материалов для создания рилсов за 1€. Старт 01.12.',uk:'13 адвент-матеріалів для створення рілсів за 1€. Старт 01.12.'};
+    nodes.forEach(function(n){n.setAttribute('data-ru',n.textContent)});
+    function setLang(l,save){
+      if(l!=='uk')l='ru';
+      root.lang=l;root.classList.toggle('uk',l==='uk');
+      nodes.forEach(function(n){n.textContent=n.getAttribute(l==='uk'?'data-uk':'data-ru')});
+      btns.forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-l')===l))});
+      var d=document.querySelector('meta[name="description"]');if(d)d.setAttribute('content',META[l]);
+      if(save){
+        try{localStorage.setItem('lang',l)}catch(e){}
+        try{var u=new URL(location.href);if(l==='uk')u.searchParams.set('lang','uk');else u.searchParams.delete('lang');history.replaceState(null,'',u)}catch(e){}
+      }
+    }
+    // по умолчанию русский; украинский — если выбран раньше или указан ?lang=uk
+    var q='';try{q=new URLSearchParams(location.search).get('lang')||''}catch(e){}
+    var saved='';try{saved=localStorage.getItem('lang')||''}catch(e){}
+    var start=q==='uk'||q==='ru'?q:(saved==='uk'?'uk':'ru');
+    if(start==='uk')setLang('uk',false);
+    btns.forEach(function(b){b.addEventListener('click',function(){setLang(b.getAttribute('data-l'),true)})});
+    // закреплённая кнопка прячется, когда виден основной призыв в конце страницы
+    var s=document.getElementById('sticky'),c=document.getElementById('cta');
+    if(!('IntersectionObserver' in window)||!s||!c)return;
+    new IntersectionObserver(function(e){s.classList.toggle('off',e[0].isIntersecting)},{threshold:.6}).observe(c);
+  })();
+</script>
+</body>
+</html>
